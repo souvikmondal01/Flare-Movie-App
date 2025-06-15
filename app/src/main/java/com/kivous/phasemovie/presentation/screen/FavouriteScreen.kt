@@ -11,20 +11,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
-import cafe.adriel.voyager.core.screen.Screen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.kivous.phasemovie.ui.theme.NunitoBold
 
-class FavouriteScreen : Screen {
-    @Composable
-    override fun Content() {
-        FavouriteScreenUI()
-    }
-}
-
 @Composable
-fun FavouriteScreenUI() {
-
+fun FavouriteScreen() {
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(Color.Black)
 

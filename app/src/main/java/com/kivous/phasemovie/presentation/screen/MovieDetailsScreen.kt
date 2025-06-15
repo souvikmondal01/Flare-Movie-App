@@ -1,6 +1,5 @@
 package com.kivous.phasemovie.presentation.screen
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -43,8 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
-import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -61,16 +58,8 @@ import com.kivous.phasemovie.util.Common
 import com.kivous.phasemovie.util.Common.getLanguageName
 import com.kivous.phasemovie.util.getAverageColor
 
-class MovieDetailsScreen(val movie: Movie) : Screen {
-    @Composable
-    override fun Content() {
-        MovieDetailsScreenUI(movie)
-    }
-}
-
-@SuppressLint("DefaultLocale")
 @Composable
-fun MovieDetailsScreenUI(movie: Movie) {
+fun MovieDetailsScreen(movie: Movie) {
 
     var avgColor by remember {
         mutableStateOf(Color.Black)
@@ -269,8 +258,6 @@ fun MovieDetailsScreenUI(movie: Movie) {
 
         Spacer(modifier = Modifier.height(64.dp))
 
-        val navigator = LocalNavigator.current
-
         if (movieListState.similarMovieList.isNotEmpty()) {
             MovieRowSection(
                 category = Category.SIMILAR,
@@ -279,7 +266,6 @@ fun MovieDetailsScreenUI(movie: Movie) {
 
                 },
                 onMovieClick = {
-                    navigator?.push(MovieDetailsScreen(it))
                 },
                 more = false
             )

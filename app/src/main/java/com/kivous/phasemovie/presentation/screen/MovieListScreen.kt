@@ -25,30 +25,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
 import com.kivous.phasemovie.presentation.compoment.ChangeStatusBarColor
 import com.kivous.phasemovie.presentation.compoment.MovieGrid
 import com.kivous.phasemovie.presentation.viewmodel.MovieListViewModel
 import com.kivous.phasemovie.ui.theme.NunitoBold
 import com.kivous.phasemovie.util.Category
 
-class MovieListScreen(
-    private val category: Category
-) : Screen {
-    @Composable
-    override fun Content() {
-        MovieListScreenUI(category)
-    }
-}
-
 @Composable
-fun MovieListScreenUI(category: Category) {
+fun MovieListScreen(category: Category) {
 
     val movieListViewModel: MovieListViewModel = hiltViewModel()
     val movieListState = movieListViewModel.movieListState.collectAsState().value
-
-    val navigator = LocalNavigator.current
 
     ChangeStatusBarColor(Color.Black)
 
@@ -68,7 +55,6 @@ fun MovieListScreenUI(category: Category) {
                     shape = CircleShape,
                     colors = CardDefaults.cardColors(Color.Transparent),
                     onClick = {
-                        navigator?.pop()
                     }) {
 
                     Icon(

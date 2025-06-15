@@ -11,8 +11,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = md_theme_dark_primary,
-    background = md_theme_dark_background,
+    primary = Red,
+    background = Color.Black,
 )
 
 @Composable

@@ -13,32 +13,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
 import com.kivous.phasemovie.presentation.compoment.ChangeStatusBarColor
 import com.kivous.phasemovie.presentation.compoment.ImageSlider
 import com.kivous.phasemovie.presentation.compoment.MovieRowSection
 import com.kivous.phasemovie.presentation.viewmodel.MovieListViewModel
 import com.kivous.phasemovie.util.Category
 
-class HomeScreen(
-) : Screen {
-    @Composable
-    override fun Content() {
-        HomeScreenUI()
-    }
-}
-
 @Composable
-fun HomeScreenUI(
+fun HomeScreen(
 ) {
     val movieListViewModel: MovieListViewModel = hiltViewModel()
     val movieListState = movieListViewModel.movieListState.collectAsState().value
     val sliderMovieListState = movieListViewModel.sliderMovieListState.collectAsState().value
 
     val sliderMovieList = sliderMovieListState.data
-
-    val navigator = LocalNavigator.current
 
     val scrollState = rememberScrollState() // home screen scroll state
 
@@ -63,46 +51,42 @@ fun HomeScreenUI(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        MovieRowSection(category = Category.NOW_PLAYING,
+        MovieRowSection(
+            category = Category.NOW_PLAYING,
             movieList = movieListState.nowPlayingMovieList,
             onMoreClick = { category ->
-                navigator?.push(MovieListScreen(category))
             },
             onMovieClick = { movie ->
-                navigator?.push(MovieDetailsScreen(movie))
             })
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        MovieRowSection(category = Category.POPULAR,
+        MovieRowSection(
+            category = Category.POPULAR,
             movieList = movieListState.popularMovieList,
             onMoreClick = { category ->
-                navigator?.push(MovieListScreen(category))
             },
             onMovieClick = { movie ->
-                navigator?.push(MovieDetailsScreen(movie))
             })
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        MovieRowSection(category = Category.TOP_RATED,
+        MovieRowSection(
+            category = Category.TOP_RATED,
             movieList = movieListState.topRatedMovieList,
             onMoreClick = { category ->
-                navigator?.push(MovieListScreen(category))
             },
             onMovieClick = { movie ->
-                navigator?.push(MovieDetailsScreen(movie))
             })
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        MovieRowSection(category = Category.UPCOMING,
+        MovieRowSection(
+            category = Category.UPCOMING,
             movieList = movieListState.upcomingMovieList,
             onMoreClick = { category ->
-                navigator?.push(MovieListScreen(category))
             },
             onMovieClick = { movie ->
-                navigator?.push(MovieDetailsScreen(movie))
             })
 
         Spacer(modifier = Modifier.height(64.dp))
