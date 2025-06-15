@@ -8,16 +8,25 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.9.1"
 activityCompose = "1.10.1"
 composeBom = "2025.06.00"
-hilt = "2.51.1"
-ksp = "2.1.20-1.0.32"
+kotlinSerialization = "2.1.21"
+# Dagger - Hilt
+hilt = "2.56.2"
+ksp = "2.1.21-2.0.2"
 hiltNavigationCompose = "1.2.0"
-googleGmsGoogleServices = "4.4.2"
+# Coil
 coilCompose = "2.6.0"
-firebaseFirestore = "25.1.4"
+# Firebase
+googleGmsGoogleServices = "4.4.2"
+firebaseBom = "33.15.0"
+# Retrofit
 retrofit = "2.11.0"
+# Moshi
 moshi = "1.15.1"
+# Splash Screen
 coreSplashscreen = "1.0.1"
+# Extended Icons
 materialIconsExtended = "1.7.8"
+# System-ui-controller
 accompanistSystemuicontroller = "0.34.0"
 
 [libraries]
@@ -42,7 +51,8 @@ androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-com
 # Coil
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 # Firebase
-firebase-firestore = { module = "com.google.firebase:firebase-firestore", version.ref = "firebaseFirestore" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
 # Retrofit
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "retrofit" }
@@ -60,7 +70,9 @@ accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization" }
+# Dagger - Hilt
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+# Firebase
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
-

@@ -2,8 +2,11 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.jetbrains.kotlin.serialization)
+    // Dagger - Hilt
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
+    // Firebase
     alias(libs.plugins.google.gms.google.services)
 }
 
@@ -68,6 +71,7 @@ dependencies {
     implementation(libs.coil.compose)
 
     // Firebase
+    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
 
     // Retrofit
@@ -86,5 +90,5 @@ dependencies {
 
     // System-ui-controller
     implementation(libs.accompanist.systemuicontroller)
-    
+
 }
