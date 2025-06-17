@@ -59,7 +59,26 @@ import com.kivous.phasemovie.util.Common.getLanguageName
 import com.kivous.phasemovie.util.getAverageColor
 
 @Composable
-fun MovieDetailsScreen(movie: Movie) {
+fun MovieDetailsScreen(
+    movieId: Int = 0
+) {
+    val movie = Movie(
+        adult = false,
+        backdrop_path = "/a3F9cXjRH488qcOqFmFZwqawBMU.jpg",
+        genre_ids = listOf(16, 28, 878),
+        original_language = "en",
+        original_title = "Predator: Killer of Killers",
+        overview = "While three of the fiercest warriors in human history—a Viking raider, a ninja in feudal Japan, and a WWII pilot—are killers in their own right, they are merely prey for their new opponent: the ultimate killer of killers.",
+        popularity = 587.5582,
+        poster_path = "/lbimIPTVsSlnmqSW5ngEsUxtHLM.jpg",
+        release_date = "2025-06-05",
+        title = "Predator: Killer of Killers",
+        video = false,
+        vote_average = 7.991,
+        vote_count = 469,
+        id = 1376434,
+        category = "now_playing"
+    )
 
     var avgColor by remember {
         mutableStateOf(Color.Black)
@@ -248,12 +267,11 @@ fun MovieDetailsScreen(movie: Movie) {
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-
         val movieListViewModel: MovieListViewModel = hiltViewModel()
         val movieListState = movieListViewModel.movieListState.collectAsState().value
 
-        LaunchedEffect(key1 = movie.id) {
-            movieListViewModel.getSimilarMovieList(movie.id.toString())
+        LaunchedEffect(key1 = movieId) {
+            movieListViewModel.getSimilarMovieList(movieId.toString())
         }
 
         Spacer(modifier = Modifier.height(64.dp))

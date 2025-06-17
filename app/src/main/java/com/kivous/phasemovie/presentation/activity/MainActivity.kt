@@ -1,15 +1,16 @@
 package com.kivous.phasemovie.presentation.activity
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Bookmark
-import androidx.compose.material.icons.rounded.Home
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -20,57 +21,79 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
+import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
+import com.kivous.phasemovie.R
 import com.kivous.phasemovie.presentation.screen.FavouriteScreen
 import com.kivous.phasemovie.presentation.screen.HomeScreen
+import com.kivous.phasemovie.presentation.screen.MovieDetailsScreen
+import com.kivous.phasemovie.presentation.screen.Screen
+import com.kivous.phasemovie.presentation.screen.SearchScreen
 import com.kivous.phasemovie.ui.theme.PhaseTheme
-import com.kivous.phasemovie.ui.theme.Red
 import dagger.hilt.android.AndroidEntryPoint
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         enableEdgeToEdge()
         setContent {
-            var selectedIndex by remember {
-                mutableIntStateOf(0)
-            }
+            var selectedIndex by remember { mutableIntStateOf(0) }
 
             PhaseTheme {
-
                 Scaffold(bottomBar = {
                     NavigationBar(
-                        containerColor = Color(0xff0a0a0a),
-                    ) {
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                            .graphicsLayer { alpha = 0.95f }
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f),
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.65f),
+                                    ),
+                                )
+                            ), tonalElevation = 0.dp, containerColor = Color.Transparent) {
                         bottomNavigationItems.forEachIndexed { index, item ->
                             NavigationBarItem(
                                 selected = index == selectedIndex, onClick = {
                                     selectedIndex = index
                                 }, icon = {
                                     Icon(
-                                        imageVector = item.second, contentDescription = item.first
+                                        painter = painterResource(item.second),
+                                        contentDescription = item.first
                                     )
                                 }, colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = Red,
-                                    unselectedIconColor = Color(0xFF7D7D7D),
-                                    indicatorColor = Color(0xff180E0E),
-                                    selectedTextColor = Color(0xffFF4040),
-                                    unselectedTextColor = Color(0xFF7D7D7D),
-                                    disabledIconColor = Color.Transparent,
+                                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                                    unselectedIconColor = MaterialTheme.colorScheme.onBackground.copy(
+                                        alpha = .8f
+                                    ),
+                                    indicatorColor = Color.Transparent,
                                 )
                             )
 
                         }
                     }
                 }) {
+                    it
 
                     Box(
-                        modifier = Modifier.padding(bottom = it.calculateBottomPadding())
+                        modifier = Modifier
+//                            .padding(bottom = it.calculateBottomPadding())
                     ) {
                         ContentScreen(
                             selectedIndex = selectedIndex
@@ -82,8 +105,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-val bottomNavigationItems: List<Pair<String, ImageVector>> = listOf(
-    "Home" to Icons.Rounded.Home, "Favourite" to Icons.Rounded.Bookmark
+val bottomNavigationItems: List<Pair<String, Int>> = listOf(
+    "Home" to R.drawable.home, "Search" to R.drawable.search, "Favourite" to R.drawable.bookmark
 )
 
 @Composable
@@ -91,7 +114,41 @@ fun ContentScreen(
     selectedIndex: Int = 0,
 ) {
     when (selectedIndex) {
-        0 -> HomeScreen()
-        1 -> FavouriteScreen()
+        0 -> NavigationRoot()
+        1 -> SearchScreen()
+        2 -> FavouriteScreen()
     }
+}
+
+@Composable
+fun NavigationRoot(modifier: Modifier = Modifier) {
+    val backStack = rememberNavBackStack(Screen.HomeScreen)
+    NavDisplay(
+        backStack = backStack, entryDecorators = listOf(
+            rememberSavedStateNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator(),
+            rememberSceneSetupNavEntryDecorator()
+        ), entryProvider = { key ->
+            when (key) {
+                is Screen.HomeScreen -> {
+                    NavEntry(key) {
+                        HomeScreen(
+                            onMovieClick = {
+                                backStack.add(Screen.MovieDetailScreen(it.id))
+                            })
+                    }
+                }
+
+                is Screen.MovieDetailScreen -> {
+                    NavEntry(key) {
+                        MovieDetailsScreen(
+                            movieId = key.movieId
+                        )
+                    }
+                }
+
+                else -> throw RuntimeException("Invalid NavKey.")
+            }
+
+        })
 }
