@@ -8,10 +8,11 @@ import com.kivous.phasemovie.domain.model.SliderMovie
 import com.kivous.phasemovie.domain.repository.MovieListRepository
 import com.kivous.phasemovie.util.Response
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class MovieListRepositoryImpl @Inject constructor(
@@ -21,14 +22,14 @@ class MovieListRepositoryImpl @Inject constructor(
     override suspend fun getMovieList(
         category: String, page: Int
     ): Flow<Response<List<Movie>>> = flow {
-        try {
-            emit(Response.Loading())
-            val movieList = movieApi.getMovieList(category, page).results.map {
-                it.toMovie(category)
-            }
+        emit(Response.Loading())
+
+        runCatching {
+            movieApi.getMovieList(category, page).results.map { it.toMovie(category) }
+        }.onSuccess { movieList ->
             emit(Response.Success(movieList))
-        } catch (e: Exception) {
-            emit(Response.Error(e.message))
+        }.onFailure { e ->
+            emit(Response.Error(e.message ?: "Unknown error occurred"))
         }
     }.flowOn(Dispatchers.IO)
 
@@ -46,16 +47,17 @@ class MovieListRepositoryImpl @Inject constructor(
         }
     }.flowOn(Dispatchers.IO)
 
-    override suspend fun getSliderMovieList(): Flow<Response<List<SliderMovie>>> = flow {
-        try {
-            emit(Response.Loading())
-            val result = firestore.collection("phase_movie").get().await()
-            val list = result.toObjects(SliderMovie::class.java) as List<SliderMovie>
-            emit(Response.Success(list))
-        } catch (e: Exception) {
-            emit(Response.Error(e.message))
+    override suspend fun getSliderMovieList(): Flow<Response<List<SliderMovie>>> = callbackFlow {
+        trySend(Response.Loading())
+        val listener = firestore.collection("phase_movie").addSnapshotListener { snapshot, error ->
+            if (error != null || snapshot == null) {
+                trySend(Response.Error(error?.message))
+                return@addSnapshotListener
+            }
+            val movieList = snapshot.toObjects(SliderMovie::class.java)
+            trySend(Response.Success(movieList))
         }
-    }.flowOn(Dispatchers.IO)
-
+        awaitClose { listener.remove() }
+    }
 
 }

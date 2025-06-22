@@ -48,7 +48,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.kivous.phasemovie.domain.model.Movie
 import com.kivous.phasemovie.presentation.compoment.ChangeStatusBarColor
-import com.kivous.phasemovie.presentation.compoment.MovieRowSection
+import com.kivous.phasemovie.presentation.compoment.MovieRow
 import com.kivous.phasemovie.presentation.viewmodel.MovieListViewModel
 import com.kivous.phasemovie.ui.theme.NunitoBold
 import com.kivous.phasemovie.ui.theme.PoppinsBold
@@ -64,13 +64,13 @@ fun MovieDetailsScreen(
 ) {
     val movie = Movie(
         adult = false,
-        backdrop_path = "/a3F9cXjRH488qcOqFmFZwqawBMU.jpg",
+        backdrop_path = "https://image.tmdb.org/t/p/w500/a3F9cXjRH488qcOqFmFZwqawBMU.jpg",
         genre_ids = listOf(16, 28, 878),
         original_language = "en",
         original_title = "Predator: Killer of Killers",
         overview = "While three of the fiercest warriors in human history—a Viking raider, a ninja in feudal Japan, and a WWII pilot—are killers in their own right, they are merely prey for their new opponent: the ultimate killer of killers.",
         popularity = 587.5582,
-        poster_path = "/lbimIPTVsSlnmqSW5ngEsUxtHLM.jpg",
+        poster_path = "https://image.tmdb.org/t/p/w500/lbimIPTVsSlnmqSW5ngEsUxtHLM.jpg",
         release_date = "2025-06-05",
         title = "Predator: Killer of Killers",
         video = false,
@@ -86,7 +86,7 @@ fun MovieDetailsScreen(
 
     val scrollState = rememberScrollState()
 
-    ChangeStatusBarColor(scrollState.value, avgColor)
+    ChangeStatusBarColor(scrollState = scrollState.value, color = avgColor)
 
     val imageStateBackDrop = rememberAsyncImagePainter(
         model = ImageRequest.Builder(LocalContext.current).data(movie.backdrop_path)
@@ -277,7 +277,7 @@ fun MovieDetailsScreen(
         Spacer(modifier = Modifier.height(64.dp))
 
         if (movieListState.similarMovieList.isNotEmpty()) {
-            MovieRowSection(
+            MovieRow(
                 category = Category.SIMILAR,
                 movieList = movieListState.similarMovieList,
                 onMoreClick = {

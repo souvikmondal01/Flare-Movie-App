@@ -1,5 +1,6 @@
 package com.kivous.phasemovie.presentation.activity
 
+import android.app.Activity
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -8,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -38,6 +41,7 @@ import com.kivous.phasemovie.R
 import com.kivous.phasemovie.presentation.screen.FavouriteScreen
 import com.kivous.phasemovie.presentation.screen.HomeScreen
 import com.kivous.phasemovie.presentation.screen.MovieDetailsScreen
+import com.kivous.phasemovie.presentation.screen.MovieListScreen
 import com.kivous.phasemovie.presentation.screen.Screen
 import com.kivous.phasemovie.presentation.screen.SearchScreen
 import com.kivous.phasemovie.ui.theme.PhaseTheme
@@ -58,7 +62,11 @@ class MainActivity : ComponentActivity() {
                 Scaffold(bottomBar = {
                     NavigationBar(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                            .clip(
+                                RoundedCornerShape(
+                                    topStart = 20.dp, topEnd = 20.dp
+                                )
+                            )
                             .graphicsLayer { alpha = 0.95f }
                             .background(
                                 brush = Brush.verticalGradient(
@@ -89,11 +97,8 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }) {
-                    it
-
                     Box(
-                        modifier = Modifier
-//                            .padding(bottom = it.calculateBottomPadding())
+                        modifier = Modifier.padding(bottom = it.calculateBottomPadding())
                     ) {
                         ContentScreen(
                             selectedIndex = selectedIndex
@@ -123,6 +128,8 @@ fun ContentScreen(
 @Composable
 fun NavigationRoot(modifier: Modifier = Modifier) {
     val backStack = rememberNavBackStack(Screen.HomeScreen)
+    val activity = LocalView.current.context as? Activity
+
     NavDisplay(
         backStack = backStack, entryDecorators = listOf(
             rememberSavedStateNavEntryDecorator(),
@@ -135,7 +142,14 @@ fun NavigationRoot(modifier: Modifier = Modifier) {
                         HomeScreen(
                             onMovieClick = {
                                 backStack.add(Screen.MovieDetailScreen(it.id))
-                            })
+                            },
+                            onBackClick = {
+                                activity?.finish()
+                            },
+                            onMoreClick = {
+                                backStack.add(Screen.MovieListScreen(it))
+                            }
+                        )
                     }
                 }
 
@@ -144,6 +158,19 @@ fun NavigationRoot(modifier: Modifier = Modifier) {
                         MovieDetailsScreen(
                             movieId = key.movieId
                         )
+                    }
+                }
+
+                is Screen.MovieListScreen -> {
+                    NavEntry(key) {
+                        MovieListScreen(
+                            category = key.category,
+                            onMovieClick = {
+                                backStack.add(Screen.MovieDetailScreen(it))
+                            },
+                            onBackClick = {
+                                backStack.removeLastOrNull()
+                            })
                     }
                 }
 

@@ -91,6 +91,8 @@ dependencies {
     // System-ui-controller
     implementation(libs.accompanist.systemuicontroller)
 
+    // Fonts
+    implementation(libs.androidx.ui.text.google.fonts)
 
     implementation(libs.nav3.runtime)
     implementation(libs.nav3.ui)

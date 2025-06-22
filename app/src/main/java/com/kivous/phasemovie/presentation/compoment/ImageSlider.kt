@@ -1,147 +1,145 @@
 package com.kivous.phasemovie.presentation.compoment
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import coil.size.Size
 import com.kivous.phasemovie.domain.model.SliderMovie
+import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImageSlider(
     sliderMovieList: List<SliderMovie>,
+    autoScroll: Boolean = false,
 ) {
     val pagerState = rememberPagerState(pageCount = { sliderMovieList.size })
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
-            modifier = Modifier.height(240.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(240.dp)
         ) {
             // Background image
-            val imageState = rememberAsyncImagePainter(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(sliderMovieList[pagerState.currentPage].bgUrl).size(Size.ORIGINAL).build()
-            ).state
+            val bgPhotoUrl = sliderMovieList[pagerState.currentPage].bgUrl
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current).data(bgPhotoUrl).crossfade(true)
+                    .build(),
+                contentDescription = "Background image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
 
-            if (imageState is AsyncImagePainter.State.Loading
-                || imageState is AsyncImagePainter.State.Error
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0xff0a0a0a))
-                ) {
-                }
-            }
-
-            if (imageState is AsyncImagePainter.State.Success) {
-                Image(
-                    painter = imageState.painter,
-                    contentDescription = "",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
-
-            // Shadow effect
+            // Shadow Effect
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        brush = Brush.linearGradient(
-                            0.0f to Color.Black,
-                            0.3f to Color.Transparent,
-                            0.5f to Color.Transparent,
-                            0.9f to Color.Black.copy(alpha = .85f),
-                            0.97f to Color.Black.copy(alpha = .95f),
-                            1f to Color.Black,
-                            start = Offset(0.0f, 20.0f),
-                            end = Offset(0.0f, 640.0f)
-                        )
-                    )
+                    .shadowEffect()
             )
+
+            // Auto scroll
+            if (autoScroll) {
+                LaunchedEffect(Unit) {
+                    while (true) {
+                        delay(3000)
+                        val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
+                        pagerState.animateScrollToPage(nextPage)
+                    }
+                }
+            }
 
             // Slider
             HorizontalPager(
-                state = pagerState, modifier = Modifier.fillMaxSize()
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
             ) { page ->
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.BottomCenter,
                 ) {
                     // Foreground image
-                    val imageStateFG = rememberAsyncImagePainter(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(sliderMovieList[page].fgUrl)
-                            .size(Size.ORIGINAL).build()
-                    ).state
-
-                    if (imageStateFG is AsyncImagePainter.State.Success) {
-                        Image(
-                            painter = imageStateFG.painter,
-                            contentDescription = "",
-                            modifier = Modifier
-                                .width(192.dp)
-                                .padding(bottom = 24.dp)
-                        )
-                    }
-
+                    val fgPhotoUrl = sliderMovieList[page].fgUrl
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current).data(fgPhotoUrl)
+                            .crossfade(true).build(),
+                        contentDescription = "Foreground image",
+                        modifier = Modifier
+                            .width(144.dp)
+                            .padding(bottom = 32.dp),
+                    )
                 }
+
             }
 
-            // Premium box
-            Premium(
+//          Genres
+            Text(
+                text = sliderMovieList[pagerState.currentPage].genres.joinToString(separator = "  •  "),
                 modifier = Modifier
-                    .statusBarsPadding()
-                    .align(Alignment.TopEnd)
-                    .padding(end = 16.dp, top = 8.dp)
-                    .height(24.dp)
-                    .width(104.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .border(
-                        width = 1.dp,
-                        brush = Brush.horizontalGradient(
-                            0f to Color(0xffC38F3B),
-                            0.5f to Color(0xFFF1C174),
-                            1f to Color(0xffC38F3B),
-                        ),
-                        shape = RoundedCornerShape(6.dp)
-                    )
-                    .background(color = Color.Black.copy(alpha = .4f))
-                    .shimmerEffect(),
+                    .padding(horizontal = 16.dp)
+                    .align(Alignment.BottomCenter)
+                    .horizontalScroll(rememberScrollState()),
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.labelLarge
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(height = 8.dp)
 
         // Indicator
         PagerIndicator(size = pagerState.pageCount, currentPage = pagerState.currentPage)
     }
 
+}
+
+@Composable
+fun PagerIndicator(
+    size: Int,
+    currentPage: Int,
+    selectedIndicatorColor: Color = MaterialTheme.colorScheme.primary,
+    unselectedIndicatorColor: Color = MaterialTheme.colorScheme.onBackground,
+) {
+    Row {
+        repeat(size) {
+            val color by animateColorAsState(
+                targetValue = if (it == currentPage) selectedIndicatorColor
+                else unselectedIndicatorColor.copy(alpha = 0.8f),
+            )
+
+            Box(
+                modifier = Modifier
+                    .padding(3.dp)
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(color)
+            )
+        }
+    }
 }

@@ -28,7 +28,7 @@ fun FavouriteScreen() {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Soon...",
+            text = "WatchList",
             fontFamily = NunitoBold,
             fontSize = 18.sp
         )

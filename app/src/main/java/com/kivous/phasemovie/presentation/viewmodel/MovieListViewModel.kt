@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kivous.phasemovie.domain.repository.MovieListRepository
 import com.kivous.phasemovie.presentation.state.MovieListState
-import com.kivous.phasemovie.presentation.state.SliderMovieListState
 import com.kivous.phasemovie.util.Category
 import com.kivous.phasemovie.util.Response
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,9 +20,6 @@ class MovieListViewModel @Inject constructor(
 ) : ViewModel() {
     private var _movieListState = MutableStateFlow(MovieListState())
     val movieListState = _movieListState.asStateFlow()
-
-    private var _sliderMovieListState = MutableStateFlow(SliderMovieListState())
-    val sliderMovieListState = _sliderMovieListState.asStateFlow()
 
     init {
         getSliderMovieList()
@@ -73,8 +69,8 @@ class MovieListViewModel @Inject constructor(
                             it.copy(
                                 isLoadingNowPlaying = false,
                                 nowPlayingMovieList =
-                                movieListState.value.nowPlayingMovieList
-                                        + nowPlayingMovieList.shuffled(),
+                                    movieListState.value.nowPlayingMovieList
+                                            + nowPlayingMovieList.shuffled(),
                                 nowPlayingMovieListPage = movieListState.value.nowPlayingMovieListPage + 1
                             )
                         }
@@ -108,10 +104,10 @@ class MovieListViewModel @Inject constructor(
                             it.copy(
                                 isLoadingPopular = false,
                                 popularMovieList =
-                                movieListState.value.popularMovieList
-                                        +
-                                        popularMovieList
-                                            .shuffled(),
+                                    movieListState.value.popularMovieList
+                                            +
+                                            popularMovieList
+                                                .shuffled(),
                                 popularMovieListPage = movieListState.value.popularMovieListPage + 1
                             )
                         }
@@ -145,8 +141,8 @@ class MovieListViewModel @Inject constructor(
                             it.copy(
                                 isLoadingTopRated = false,
                                 topRatedMovieList =
-                                movieListState.value.topRatedMovieList
-                                        + topRatedMovieList.shuffled(),
+                                    movieListState.value.topRatedMovieList
+                                            + topRatedMovieList.shuffled(),
                                 topRatedMovieListPage = movieListState.value.topRatedMovieListPage + 1
                             )
                         }
@@ -180,8 +176,8 @@ class MovieListViewModel @Inject constructor(
                             it.copy(
                                 isLoadingUpcoming = false,
                                 upcomingMovieList =
-                                movieListState.value.upcomingMovieList
-                                        + upcomingMovieList.shuffled(),
+                                    movieListState.value.upcomingMovieList
+                                            + upcomingMovieList.shuffled(),
                                 upcomingMovieListPage = movieListState.value.upcomingMovieListPage + 1
                             )
                         }
@@ -230,30 +226,31 @@ class MovieListViewModel @Inject constructor(
         movieListRepository.getSliderMovieList().collectLatest { result ->
             when (result) {
                 is Response.Loading -> {
-                    _sliderMovieListState.update {
-                        it.copy(isLoading = true)
+                    _movieListState.update {
+                        it.copy(isLoadingSliderMovie = true)
                     }
                 }
 
                 is Response.Success -> {
                     result.data?.let { data ->
-                        _sliderMovieListState.update {
+                        _movieListState.update {
                             it.copy(
-                                isLoading = false,
-                                data = data
+                                isLoadingSliderMovie = false,
+                                sliderMovieList = data
                             )
                         }
                     }
                 }
 
                 is Response.Error -> {
-                    _sliderMovieListState.update {
+                    _movieListState.update {
                         it.copy(
-                            isLoading = false,
-                            error = result.message ?: ""
+                            isLoadingSliderMovie = false,
+                            sliderMovieError = result.message ?: ""
                         )
                     }
                 }
+
             }
         }
     }
