@@ -1,7 +1,7 @@
 package com.kivous.phasemovie.di
 
-import com.kivous.phasemovie.data.repository.MovieListRepositoryImpl
-import com.kivous.phasemovie.domain.repository.MovieListRepository
+import com.kivous.phasemovie.data.repository.MovieRepositoryImpl
+import com.kivous.phasemovie.domain.repository.MovieRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -15,7 +15,7 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindMovieListRepository(
-        movieListRepositoryImpl: MovieListRepositoryImpl
-    ): MovieListRepository
+        movieListRepositoryImpl: MovieRepositoryImpl
+    ): MovieRepository
 
 }

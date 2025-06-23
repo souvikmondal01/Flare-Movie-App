@@ -27,7 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kivous.phasemovie.domain.model.Movie
 import com.kivous.phasemovie.presentation.compoment.ChangeStatusBarColor
 import com.kivous.phasemovie.presentation.compoment.MovieGrid
-import com.kivous.phasemovie.presentation.viewmodel.MovieListViewModel
+import com.kivous.phasemovie.presentation.viewmodel.MovieViewModel
 import com.kivous.phasemovie.util.Category
 
 @Composable
@@ -35,11 +35,11 @@ fun MovieListScreen(
     category: Category,
     onBackClick: () -> Unit = {},
     onMovieClick: (Int) -> Unit = {},
-    movieListViewModel: MovieListViewModel = hiltViewModel()
+    movieViewModel: MovieViewModel = hiltViewModel()
 ) {
     ChangeStatusBarColor()
 
-    val movieListState by movieListViewModel.movieListState.collectAsStateWithLifecycle()
+    val movieListState by movieViewModel.movieListState.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -86,7 +86,7 @@ fun MovieListScreen(
             movies = movieList,
             isLoading = isLoading,
             onMovieClick = { onMovieClick(it.id) },
-            paginate = { movieListViewModel.paginate(category) }
+            paginate = { movieViewModel.paginate(category) }
         )
 
     }

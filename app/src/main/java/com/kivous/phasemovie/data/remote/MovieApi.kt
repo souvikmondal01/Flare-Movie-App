@@ -1,6 +1,8 @@
 package com.kivous.phasemovie.data.remote
 
 import com.kivous.phasemovie.data.remote.model.MovieListDto
+import com.kivous.phasemovie.data.remote.model.movie_credits.MovieCreditsDto
+import com.kivous.phasemovie.data.remote.model.movie_details.MovieDetailsDto
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -20,6 +22,17 @@ interface MovieApi {
         @Query("api_key") apiKey: String = API_KEY
     ): MovieListDto
 
+    @GET("movie/{id}")
+    suspend fun getMovieDetails(
+        @Path("id") id: String,
+        @Query("api_key") apiKey: String = API_KEY
+    ): MovieDetailsDto
+
+    @GET("movie/{id}/credits")
+    suspend fun getMovieCredits(
+        @Path("id") id: String,
+        @Query("api_key") apiKey: String = API_KEY
+    ): MovieCreditsDto
 
 
     companion object {
@@ -29,7 +42,13 @@ interface MovieApi {
     }
 
 }
+/**
+ * https://api.themoviedb.org/3/movie/574475/credits?api_key=676501002986df75334b86def9839a75
+ */
 
+/**
+ * https://api.themoviedb.org/3/movie/574475?api_key=676501002986df75334b86def9839a75
+ */
 
 /**
  *  https://api.themoviedb.org/3/movie/popular?language=en-US&page=1&api_key=676501002986df75334b86def9839a75

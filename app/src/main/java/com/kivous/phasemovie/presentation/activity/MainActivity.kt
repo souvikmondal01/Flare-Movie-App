@@ -156,7 +156,10 @@ fun NavigationRoot(modifier: Modifier = Modifier) {
                 is Screen.MovieDetailScreen -> {
                     NavEntry(key) {
                         MovieDetailsScreen(
-                            movieId = key.movieId
+                            movieId = key.movieId,
+                            onSimilarMovieClick = {
+                                backStack.add(Screen.MovieDetailScreen(it))
+                            }
                         )
                     }
                 }

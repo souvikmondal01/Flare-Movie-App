@@ -1,7 +1,5 @@
 package com.kivous.phasemovie.domain.model
 
-import java.io.Serializable
-
 data class Movie(
     val adult: Boolean,
     val backdrop_path: String,
@@ -18,4 +16,4 @@ data class Movie(
     val vote_count: Int,
     val id: Int,
     val category: String
-) : Serializable
+)

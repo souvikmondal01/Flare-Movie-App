@@ -2,9 +2,12 @@ package com.kivous.phasemovie.presentation.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +16,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -42,43 +48,38 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
-import com.kivous.phasemovie.domain.model.Movie
 import com.kivous.phasemovie.presentation.compoment.ChangeStatusBarColor
 import com.kivous.phasemovie.presentation.compoment.MovieRow
-import com.kivous.phasemovie.presentation.viewmodel.MovieListViewModel
+import com.kivous.phasemovie.presentation.viewmodel.MovieViewModel
 import com.kivous.phasemovie.ui.theme.NunitoBold
 import com.kivous.phasemovie.ui.theme.PoppinsBold
 import com.kivous.phasemovie.ui.theme.Red
 import com.kivous.phasemovie.util.Category
-import com.kivous.phasemovie.util.Common
 import com.kivous.phasemovie.util.Common.getLanguageName
+import com.kivous.phasemovie.util.Extension.logD
 import com.kivous.phasemovie.util.getAverageColor
 
 @Composable
 fun MovieDetailsScreen(
-    movieId: Int = 0
+    movieId: Int = 0,
+    onBackClick: () -> Unit = {},
+    onSimilarMovieClick: (Int) -> Unit = {},
+    movieViewModel: MovieViewModel = hiltViewModel()
 ) {
-    val movie = Movie(
-        adult = false,
-        backdrop_path = "https://image.tmdb.org/t/p/w500/a3F9cXjRH488qcOqFmFZwqawBMU.jpg",
-        genre_ids = listOf(16, 28, 878),
-        original_language = "en",
-        original_title = "Predator: Killer of Killers",
-        overview = "While three of the fiercest warriors in human history—a Viking raider, a ninja in feudal Japan, and a WWII pilot—are killers in their own right, they are merely prey for their new opponent: the ultimate killer of killers.",
-        popularity = 587.5582,
-        poster_path = "https://image.tmdb.org/t/p/w500/lbimIPTVsSlnmqSW5ngEsUxtHLM.jpg",
-        release_date = "2025-06-05",
-        title = "Predator: Killer of Killers",
-        video = false,
-        vote_average = 7.991,
-        vote_count = 469,
-        id = 1376434,
-        category = "now_playing"
-    )
+    LaunchedEffect(Unit) {
+        movieViewModel.getMovieDetails(id = movieId.toString())
+        movieViewModel.getMovieCredits(id = movieId.toString())
+    }
+
+    val movieState by movieViewModel.movieListState.collectAsStateWithLifecycle()
+    val movie = movieState.movieDetails
+    val cast = movieState.movieCredits?.cast
 
     var avgColor by remember {
         mutableStateOf(Color.Black)
@@ -89,12 +90,12 @@ fun MovieDetailsScreen(
     ChangeStatusBarColor(scrollState = scrollState.value, color = avgColor)
 
     val imageStateBackDrop = rememberAsyncImagePainter(
-        model = ImageRequest.Builder(LocalContext.current).data(movie.backdrop_path)
+        model = ImageRequest.Builder(LocalContext.current).data(movie?.backdropPath)
             .size(Size.ORIGINAL).build()
     ).state
 
     val imageStatePoster = rememberAsyncImagePainter(
-        model = ImageRequest.Builder(LocalContext.current).data(movie.poster_path)
+        model = ImageRequest.Builder(LocalContext.current).data(movie?.posterPath)
             .size(Size.ORIGINAL).build()
     ).state
 
@@ -166,7 +167,7 @@ fun MovieDetailsScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = movie.title,
+            text = movie?.title ?: "",
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .align(Alignment.CenterHorizontally),
@@ -178,100 +179,134 @@ fun MovieDetailsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(modifier = Modifier.align(Alignment.CenterHorizontally)) {
-            Spacer(modifier = Modifier.width(8.dp))
+        movie?.let {
+            Row(modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                Spacer(modifier = Modifier.width(8.dp))
 
-            Text(
-                text = movie.release_date.substring(0, 4),
-                color = Color(0xff958B8B),
-                fontSize = 14.sp,
-                fontFamily = NunitoBold
-            )
-
-            Text(
-                text = "•",
-                color = Color(0xff958B8B),
-                fontSize = 20.sp,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            Text(
-                text = getLanguageName(movie.original_language),
-                color = Color(0xff958B8B),
-                fontSize = 14.sp,
-                fontFamily = NunitoBold
-            )
-
-            Text(
-                text = "•",
-                color = Color(0xff958B8B),
-                fontSize = 20.sp,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Red)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                movie?.releaseDate?.substring(0, 4)?.let {
                     Text(
-                        text = String.format("%.1f", movie.vote_average / 2),
-                        color = Color.White,
+                        text = it,
+                        color = Color(0xff958B8B),
                         fontSize = 14.sp,
                         fontFamily = NunitoBold
                     )
+                }
 
-                    Icon(
-                        imageVector = Icons.Rounded.Star,
-                        contentDescription = "",
-                        tint = Color.White,
-                        modifier = Modifier.size(12.dp)
-                    )
+                Text(
+                    text = "•",
+                    color = Color(0xff958B8B),
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+
+                Text(
+                    text = getLanguageName(movie?.originalLanguage ?: ""),
+                    color = Color(0xff958B8B),
+                    fontSize = 14.sp,
+                    fontFamily = NunitoBold
+                )
+
+                Text(
+                    text = "•",
+                    color = Color(0xff958B8B),
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Red)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = String.format("%.1f", movie?.voteAverage?.div(2)),
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontFamily = NunitoBold
+                        )
+
+                        Icon(
+                            imageVector = Icons.Rounded.Star,
+                            contentDescription = "",
+                            tint = Color.White,
+                            modifier = Modifier.size(12.dp)
+                        )
+
+                    }
 
                 }
 
             }
-
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = movie.genre_ids.joinToString(separator = "  |  ") {
-                Common.getGenres(it)
-            },
+        Text(text = movie?.genres?.joinToString(separator = "  |  ") {
+            it.name
+        } ?: "",
             modifier = Modifier
                 .padding(horizontal = 8.dp)
                 .align(Alignment.CenterHorizontally)
                 .horizontalScroll(rememberScrollState()),
             color = Color(0xffF0E1E1),
             fontSize = 16.sp,
-            fontFamily = NunitoBold
-        )
+            fontFamily = NunitoBold)
 
-        if (movie.overview.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(16.dp))
+        movie?.overview?.let {
+            if (it.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
 
         Text(
-            text = movie.overview,
+            text = movie?.overview ?: "",
             modifier = Modifier.padding(horizontal = 8.dp),
             color = Color(0xff958B8B),
             fontSize = 14.sp,
             lineHeight = 18.sp,
             textAlign = TextAlign.Justify
         )
-        Spacer(modifier = Modifier.height(8.dp))
+//        Spacer(modifier = Modifier.height(8.dp))
 
-        val movieListViewModel: MovieListViewModel = hiltViewModel()
-        val movieListState = movieListViewModel.movieListState.collectAsState().value
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            cast?.let {
+                items(cast) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable{
+                            logD(it.order)
+                        }
+                    ) {
+                        AsyncImage(
+                            model = it.profilePath,
+                            contentDescription = "",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clip(CircleShape)
+                        )
+                        Text(text = it.name)
+                        Text(text = it.character)
+                    }
+                }
+            }
+
+        }
+
+        val movieViewModel: MovieViewModel = hiltViewModel()
+        val movieListState = movieViewModel.movieListState.collectAsState().value
 
         LaunchedEffect(key1 = movieId) {
-            movieListViewModel.getSimilarMovieList(movieId.toString())
+            movieViewModel.getSimilarMovieList(movieId.toString())
         }
 
         Spacer(modifier = Modifier.height(64.dp))
@@ -284,6 +319,7 @@ fun MovieDetailsScreen(
 
                 },
                 onMovieClick = {
+                    onSimilarMovieClick(it.id)
                 },
                 more = false
             )

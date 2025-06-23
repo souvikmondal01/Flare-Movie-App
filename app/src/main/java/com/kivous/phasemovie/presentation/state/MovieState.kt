@@ -1,9 +1,11 @@
 package com.kivous.phasemovie.presentation.state
 
 import com.kivous.phasemovie.domain.model.Movie
+import com.kivous.phasemovie.domain.model.MovieDetails
 import com.kivous.phasemovie.domain.model.SliderMovie
+import com.kivous.phasemovie.domain.model.movie_credits.MovieCredits
 
-data class MovieListState(
+data class MovieState(
     // Now Playing Movie
     val isLoadingNowPlaying: Boolean = false,
     val nowPlayingMovieListPage: Int = 1,
@@ -36,5 +38,15 @@ data class MovieListState(
     // Slider Movie
     val isLoadingSliderMovie: Boolean = false,
     val sliderMovieList: List<SliderMovie> = emptyList(),
-    val sliderMovieError: String = ""
+    val sliderMovieError: String = "",
+
+    // Single Movie Details
+    val isLoadingMovieDetails: Boolean = false,
+    val movieDetails: MovieDetails? = null,
+    val movieDetailsError: String = "",
+
+    // Movie Credits
+    val isLoadingMovieCredits: Boolean = false,
+    val movieCredits: MovieCredits? = null,
+    val movieCreditsError: String = ""
 )

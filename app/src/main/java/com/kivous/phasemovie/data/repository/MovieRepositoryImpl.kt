@@ -2,10 +2,14 @@ package com.kivous.phasemovie.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kivous.phasemovie.data.mapper.toMovie
+import com.kivous.phasemovie.data.mapper.toMovieCredits
+import com.kivous.phasemovie.data.mapper.toMovieDetails
 import com.kivous.phasemovie.data.remote.MovieApi
 import com.kivous.phasemovie.domain.model.Movie
+import com.kivous.phasemovie.domain.model.MovieDetails
 import com.kivous.phasemovie.domain.model.SliderMovie
-import com.kivous.phasemovie.domain.repository.MovieListRepository
+import com.kivous.phasemovie.domain.model.movie_credits.MovieCredits
+import com.kivous.phasemovie.domain.repository.MovieRepository
 import com.kivous.phasemovie.util.Response
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -15,10 +19,10 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
-class MovieListRepositoryImpl @Inject constructor(
+class MovieRepositoryImpl @Inject constructor(
     private val movieApi: MovieApi,
     private val firestore: FirebaseFirestore,
-) : MovieListRepository {
+) : MovieRepository {
     override suspend fun getMovieList(
         category: String, page: Int
     ): Flow<Response<List<Movie>>> = flow {
@@ -58,6 +62,28 @@ class MovieListRepositoryImpl @Inject constructor(
             trySend(Response.Success(movieList))
         }
         awaitClose { listener.remove() }
+    }
+
+    override suspend fun getMovieDetails(id: String): Flow<Response<MovieDetails>> = flow {
+        emit(Response.Loading())
+        runCatching {
+            movieApi.getMovieDetails(id).toMovieDetails()
+        }.onSuccess { movieDetails ->
+            emit(Response.Success(movieDetails))
+        }.onFailure { e ->
+            emit(Response.Error(e.message ?: "Unknown error occurred"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    override suspend fun getMovieCredits(id: String): Flow<Response<MovieCredits>> = flow {
+        emit(Response.Loading())
+        runCatching {
+            movieApi.getMovieCredits(id).toMovieCredits()
+        }.onSuccess {
+            emit(Response.Success(it))
+        }.onFailure { e ->
+            emit(Response.Error(e.message ?: "Unknown error occurred"))
+        }
     }
 
 }

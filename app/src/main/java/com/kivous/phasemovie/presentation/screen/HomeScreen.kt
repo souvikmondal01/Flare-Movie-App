@@ -23,6 +23,7 @@ import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,7 +40,7 @@ import com.kivous.phasemovie.presentation.compoment.ImageSlider
 import com.kivous.phasemovie.presentation.compoment.MovieRow
 import com.kivous.phasemovie.presentation.compoment.ShimmerBox
 import com.kivous.phasemovie.presentation.compoment.Spacer
-import com.kivous.phasemovie.presentation.viewmodel.MovieListViewModel
+import com.kivous.phasemovie.presentation.viewmodel.MovieViewModel
 import com.kivous.phasemovie.ui.theme.Golden
 import com.kivous.phasemovie.util.Category
 
@@ -48,9 +49,18 @@ fun HomeScreen(
     onMovieClick: (Movie) -> Unit = {},
     onBackClick: () -> Unit = {},
     onMoreClick: (Category) -> Unit = {},
-    movieListViewModel: MovieListViewModel = hiltViewModel()
+    movieViewModel: MovieViewModel = hiltViewModel()
 ) {
-    val movieListState by movieListViewModel.movieListState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        movieViewModel.getSliderMovieList()
+        movieViewModel.getNowPlayingMovieList()
+        movieViewModel.getPopularMovieList()
+        movieViewModel.getTopRatedMovieList()
+        movieViewModel.getUpcomingMovieList()
+    }
+
+    val movieListState by movieViewModel.movieListState.collectAsStateWithLifecycle()
 
     val movieSections = listOf(
         Category.NOW_PLAYING to movieListState.nowPlayingMovieList,
