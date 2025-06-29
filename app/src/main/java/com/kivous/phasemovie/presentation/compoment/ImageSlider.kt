@@ -16,6 +16,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,93 +31,138 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.kivous.phasemovie.domain.model.SliderMovie
+import com.kivous.phasemovie.domain.model.Movie
 import kotlinx.coroutines.delay
 
 @Composable
 fun ImageSlider(
-    sliderMovieList: List<SliderMovie>,
+    movies: List<Movie> = emptyList(),
     autoScroll: Boolean = false,
+    showPlaceholder: Boolean = true,
+    placeHolderColor: Color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f),
 ) {
-    val pagerState = rememberPagerState(pageCount = { sliderMovieList.size })
+    if (movies.isNotEmpty()) {
+        val pagerState = rememberPagerState(pageCount = { movies.size })
+        val currentMovie = movies[pagerState.currentPage]
+        val textScrollState = rememberScrollState()
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(240.dp)
-        ) {
-            // Background image
-            val bgPhotoUrl = sliderMovieList[pagerState.currentPage].bgUrl
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current).data(bgPhotoUrl).crossfade(true)
-                    .build(),
-                contentDescription = "Background image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-
-            // Shadow Effect
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .shadowEffect()
-            )
-
-            // Auto scroll
+//      Auto scroll effect
+        LaunchedEffect(pagerState, autoScroll) {
             if (autoScroll) {
-                LaunchedEffect(Unit) {
-                    while (true) {
-                        delay(3000)
-                        val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
-                        pagerState.animateScrollToPage(nextPage)
-                    }
+                while (true) {
+                    delay(5000)
+                    val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
+                    pagerState.animateScrollToPage(nextPage)
                 }
             }
-
-            // Slider
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-            ) { page ->
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.BottomCenter,
-                ) {
-                    // Foreground image
-                    val fgPhotoUrl = sliderMovieList[page].fgUrl
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current).data(fgPhotoUrl)
-                            .crossfade(true).build(),
-                        contentDescription = "Foreground image",
-                        modifier = Modifier
-                            .width(144.dp)
-                            .padding(bottom = 32.dp),
-                    )
-                }
-
-            }
-
-//          Genres
-            Text(
-                text = sliderMovieList[pagerState.currentPage].genres.joinToString(separator = "  •  "),
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .align(Alignment.BottomCenter)
-                    .horizontalScroll(rememberScrollState()),
-                color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.labelLarge
-            )
         }
 
-        Spacer(height = 8.dp)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(240.dp)
+            ) {
+                // Background image
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(currentMovie.backdropPath).crossfade(true).build(),
+                    contentDescription = "Backdrop for ${currentMovie.title}",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
 
-        // Indicator
-        PagerIndicator(size = pagerState.pageCount, currentPage = pagerState.currentPage)
+//              Shadow effect overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .shadowEffect()
+                )
+
+//              Slider
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize(),
+                ) { page ->
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.BottomCenter,
+                    ) {
+//                      Foreground image
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(movies[page].posterPath).crossfade(true).build(),
+                            contentDescription = "Poster for ${movies[page].title}",
+                            modifier = Modifier
+                                .width(144.dp)
+                                .padding(bottom = 32.dp),
+                        )
+                    }
+
+                }
+
+//              Genres
+                Text(
+                    text = currentMovie.genres.joinToString(separator = "  •  "),
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .align(Alignment.BottomCenter)
+                        .horizontalScroll(textScrollState),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.labelLarge
+                )
+
+            }
+
+            Spacer(height = 8.dp)
+
+            // Indicator
+            PagerIndicator(size = pagerState.pageCount, currentPage = pagerState.currentPage)
+        }
+    } else {
+        if (showPlaceholder) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(246.dp),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(144.dp)
+                                .height(54.dp)
+                                .background(placeHolderColor)
+                        )
+                        Spacer(height = 16.dp)
+                        Text(
+                            text = "",
+                            modifier = Modifier
+                                .fillMaxWidth(.8f)
+                                .background(placeHolderColor),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                }
+                Spacer(height = 8.dp)
+                Box(
+                    modifier = Modifier
+                        .width(32.dp)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(placeHolderColor)
+                )
+            }
+        }
+
     }
-
 }
 
 @Composable

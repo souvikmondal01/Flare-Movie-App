@@ -40,8 +40,8 @@ import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
 import com.kivous.phasemovie.R
 import com.kivous.phasemovie.presentation.screen.FavouriteScreen
 import com.kivous.phasemovie.presentation.screen.HomeScreen
-import com.kivous.phasemovie.presentation.screen.MovieDetailsScreen
-import com.kivous.phasemovie.presentation.screen.MovieListScreen
+import com.kivous.phasemovie.presentation.screen.MovieScreen
+import com.kivous.phasemovie.presentation.screen.MovieGridScreen
 import com.kivous.phasemovie.presentation.screen.Screen
 import com.kivous.phasemovie.presentation.screen.SearchScreen
 import com.kivous.phasemovie.ui.theme.PhaseTheme
@@ -141,7 +141,7 @@ fun NavigationRoot(modifier: Modifier = Modifier) {
                     NavEntry(key) {
                         HomeScreen(
                             onMovieClick = {
-                                backStack.add(Screen.MovieDetailScreen(it.id))
+                                backStack.add(Screen.MovieDetailScreen(it))
                             },
                             onBackClick = {
                                 activity?.finish()
@@ -155,7 +155,7 @@ fun NavigationRoot(modifier: Modifier = Modifier) {
 
                 is Screen.MovieDetailScreen -> {
                     NavEntry(key) {
-                        MovieDetailsScreen(
+                        MovieScreen(
                             movieId = key.movieId,
                             onSimilarMovieClick = {
                                 backStack.add(Screen.MovieDetailScreen(it))
@@ -166,7 +166,7 @@ fun NavigationRoot(modifier: Modifier = Modifier) {
 
                 is Screen.MovieListScreen -> {
                     NavEntry(key) {
-                        MovieListScreen(
+                        MovieGridScreen(
                             category = key.category,
                             onMovieClick = {
                                 backStack.add(Screen.MovieDetailScreen(it))

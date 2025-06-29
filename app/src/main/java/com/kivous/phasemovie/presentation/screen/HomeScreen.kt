@@ -34,78 +34,237 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kivous.phasemovie.domain.model.Movie
-import com.kivous.phasemovie.presentation.compoment.ChangeStatusBarColor
 import com.kivous.phasemovie.presentation.compoment.ImageSlider
-import com.kivous.phasemovie.presentation.compoment.MovieRow
+import com.kivous.phasemovie.presentation.compoment.MovieCategoryRow
 import com.kivous.phasemovie.presentation.compoment.ShimmerBox
 import com.kivous.phasemovie.presentation.compoment.Spacer
+import com.kivous.phasemovie.presentation.compoment.StatusBarColor
 import com.kivous.phasemovie.presentation.viewmodel.MovieViewModel
 import com.kivous.phasemovie.ui.theme.Golden
 import com.kivous.phasemovie.util.Category
+import com.kivous.phasemovie.util.Common
 
 @Composable
 fun HomeScreen(
-    onMovieClick: (Movie) -> Unit = {},
+    onMovieClick: (Int) -> Unit = {},
+    onMoreClick: (category: Category) -> Unit = {},
     onBackClick: () -> Unit = {},
-    onMoreClick: (Category) -> Unit = {},
     movieViewModel: MovieViewModel = hiltViewModel()
 ) {
-
     LaunchedEffect(Unit) {
-        movieViewModel.getSliderMovieList()
-        movieViewModel.getNowPlayingMovieList()
-        movieViewModel.getPopularMovieList()
-        movieViewModel.getTopRatedMovieList()
-        movieViewModel.getUpcomingMovieList()
+        movieViewModel.getSliderMovies()
     }
+    val movieState by movieViewModel.movieState.collectAsStateWithLifecycle()
+    val sliderMovies = movieState.moviesState[Category.SLIDER]?.movies.orEmpty()
 
-    val movieListState by movieViewModel.movieListState.collectAsStateWithLifecycle()
-
-    val movieSections = listOf(
-        Category.NOW_PLAYING to movieListState.nowPlayingMovieList,
-        Category.POPULAR to movieListState.popularMovieList,
-        Category.TOP_RATED to movieListState.topRatedMovieList,
-        Category.UPCOMING to movieListState.upcomingMovieList
-    )
-
-    val homeScreenScrollState = rememberScrollState()
+    val scrollState = rememberScrollState()
 
     // Change Status-Bar Color according scroll state
-    ChangeStatusBarColor(scrollState = homeScreenScrollState.value)
+    StatusBarColor(scrollState = scrollState.value)
 
-    var autoScroll by remember { mutableStateOf(false) }
+    var autoScroll by remember { mutableStateOf(true) }
 
     Box {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(homeScreenScrollState)
+                .verticalScroll(scrollState)
                 .navigationBarsPadding()
         ) {
             // Image Slider start
-            if (movieListState.sliderMovieList.isNotEmpty()) {
-                ImageSlider(
-                    sliderMovieList = movieListState.sliderMovieList,
-                    autoScroll = autoScroll
-                )
-            }
+            ImageSlider(movies = sliderMovies, autoScroll = autoScroll)
             // Image Slider end
-
             Spacer(height = 16.dp)
 
-            movieSections.forEachIndexed { index, (category, movieList) ->
-                MovieRow(
-                    category = category,
-                    movieList = movieList,
-                    onMoreClick = {
-                        onMoreClick(it)
-                    },
-                    onMovieClick = {
-                        onMovieClick(it)
-                    })
-                Spacer(height = if (index == movieSections.lastIndex) 64.dp else 24.dp)
-            }
+//          Latest Releases in India
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.LATEST_RELEASES_IN_INDIA,
+                onMovieClick = { onMovieClick(it) },
+                onMoreClick = { onMoreClick(it) })
+            Spacer(height = 24.dp)
+
+//          Trending Movies Today
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.TRENDING_MOVIES,
+                onMovieClick = {
+                    onMovieClick(it)
+                },
+                onMoreClick = {
+                    onMoreClick(it)
+                })
+            Spacer(height = 24.dp)
+
+//          Popular Indian TV Shows
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.POPULAR_INDIAN_TV_SHOWS,
+                onMovieClick = {
+                    onMovieClick(it)
+                },
+                onMoreClick = {
+                    onMoreClick(it)
+                },
+                isCardWide = true
+            )
+            Spacer(height = 24.dp)
+
+//          Now Playing in Theaters
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.NOW_PLAYING,
+                onMovieClick = {
+                    onMovieClick(it)
+                },
+                onMoreClick = {
+                    onMoreClick(it)
+                })
+            Spacer(height = 24.dp)
+
+//          Top 20 Indian Movies
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.TOP_INDIAN_MOVIES,
+                onMovieClick = {
+                    onMovieClick(it)
+                },
+                showMore = false,
+                showLanguageFilter = true,
+                languages = Common.indianLanguages
+            )
+            Spacer(height = 24.dp)
+
+//          Top Rated Worldwide
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.TOP_RATED,
+                onMovieClick = {
+                    onMovieClick(it)
+                },
+                onMoreClick = {
+                    onMoreClick(it)
+                })
+            Spacer(height = 24.dp)
+
+//          Popular Movies
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.POPULAR,
+                onMovieClick = {
+                    onMovieClick(it)
+                },
+                onMoreClick = {
+                    onMoreClick(it)
+                })
+            Spacer(height = 24.dp)
+
+//          Popular TV Shows
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.POPULAR_TV_SHOWS,
+                onMovieClick = {
+                    onMovieClick(it)
+                },
+                onMoreClick = {
+                    onMoreClick(it)
+                },
+                isCardWide = true
+            )
+            Spacer(height = 24.dp)
+
+//          Popular Anime
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.POPULAR_ANIME,
+                onMovieClick = {
+                    onMovieClick(it)
+                },
+                onMoreClick = {
+                    onMoreClick(it)
+                },
+            )
+            Spacer(height = 24.dp)
+
+//          Top Animated Movies
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.POPULAR_ANIMATION_MOVIES,
+                onMovieClick = {
+                    onMovieClick(it)
+                },
+                onMoreClick = {
+                    onMoreClick(it)
+                },
+            )
+            Spacer(height = 24.dp)
+
+//          popular_animation_tv_shows
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.POPULAR_ANIMATION_TV_SHOWS,
+                onMovieClick = {
+                    onMovieClick(it)
+                },
+                onMoreClick = {
+                    onMoreClick(it)
+                },
+            )
+            Spacer(height = 24.dp)
+
+//          Must-Watch Hindi Thrillers
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.THRILLER_HINDI_MOVIES,
+                onMovieClick = {
+                    onMovieClick(it)
+                },
+                onMoreClick = {
+                    onMoreClick(it)
+                },
+            )
+            Spacer(height = 24.dp)
+
+//          Upcoming Indian Movies
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.UPCOMING_INDIAN_MOVIES,
+                onMovieClick = {
+                    onMovieClick(it)
+                },
+                onMoreClick = {
+                    onMoreClick(it)
+                },
+            )
+            Spacer(height = 24.dp)
+
+//          Upcoming Indian Movies
+            MovieCategoryRow(
+                viewModel = movieViewModel,
+                state = movieState,
+                category = Category.UPCOMING_MOVIES,
+                onMovieClick = {
+                    onMovieClick(it)
+                },
+                onMoreClick = {
+                    onMoreClick(it)
+                },
+            )
+
+            Spacer(height = 96.dp)
 
         }
 
@@ -114,7 +273,7 @@ fun HomeScreen(
             modifier = Modifier
                 .statusBarsPadding()
                 .padding(start = 16.dp, top = 16.dp),
-            visible = homeScreenScrollState.value < 200,
+            visible = scrollState.value < 200,
             enter = fadeIn() + slideInVertically(initialOffsetY = { -40 }),
             exit = fadeOut() + slideOutVertically(targetOffsetY = { -40 })
         ) {
@@ -123,8 +282,7 @@ fun HomeScreen(
                     .size(52.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.onBackground.copy(alpha = .3f))
-                    .clickable { onBackClick() },
-                contentAlignment = Alignment.Center
+                    .clickable { onBackClick() }, contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Rounded.ArrowBackIosNew,
@@ -140,7 +298,7 @@ fun HomeScreen(
                 .statusBarsPadding()
                 .align(Alignment.TopEnd)
                 .padding(top = 8.dp, end = 16.dp),
-            visible = homeScreenScrollState.value < 200,
+            visible = scrollState.value < 200,
             enter = fadeIn() + slideInVertically(initialOffsetY = { -40 }),
             exit = fadeOut() + slideOutVertically(targetOffsetY = { -40 })
         ) {
@@ -150,13 +308,11 @@ fun HomeScreen(
                 contentColor = Golden,
                 onClick = {
                     autoScroll = !autoScroll
-                }
-            )
+                })
         }
         // Premium Button end
 
     }
-
 
 }
 

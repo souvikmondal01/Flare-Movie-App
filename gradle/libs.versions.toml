@@ -1,6 +1,6 @@
 [versions]
-agp = "8.10.1"
-kotlin = "2.1.21"
+agp = "8.11.0"
+kotlin = "2.2.0"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -8,33 +8,32 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.9.1"
 activityCompose = "1.10.1"
 composeBom = "2025.06.01"
-kotlinSerialization = "2.1.21"
 # Dagger - Hilt
 hilt = "2.56.2"
 ksp = "2.1.21-2.0.2"
 hiltNavigationCompose = "1.2.0"
 # Coil
-coilCompose = "2.6.0"
+coilCompose = "2.7.0"
 # Firebase
-googleGmsGoogleServices = "4.4.2"
-firebaseBom = "33.15.0"
+googleGmsGoogleServices = "4.4.3"
+firebaseBom = "33.16.0"
 # Retrofit
-retrofit = "2.11.0"
+retrofit = "3.0.0"
 # Moshi
-moshi = "1.15.1"
+moshi = "1.15.2"
 # Splash Screen
 coreSplashscreen = "1.0.1"
 # Extended Icons
 materialIconsExtended = "1.7.8"
 # System-ui-controller
-accompanistSystemuicontroller = "0.34.0"
+accompanistSystemuicontroller = "0.36.0"
 # Fonts
 uiTextGoogleFonts = "1.8.3"
 
 nav3Core = "1.0.0-alpha04"
 nav3Lifecycle = "1.0.0-alpha02"
 kotlinxSerializationCore = "1.8.1"
-koin = "4.0.4"
+koin = "4.1.0"
 windowsizeclass = "1.3.2"
 material3Adaptive = "1.2.0-alpha07"
 
@@ -94,7 +93,7 @@ androidx-material3-adaptive = { module = "androidx.compose.material3.adaptive:ad
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization" }
+jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 # Dagger - Hilt
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

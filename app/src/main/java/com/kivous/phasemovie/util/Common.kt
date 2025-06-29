@@ -1,7 +1,10 @@
 package com.kivous.phasemovie.util
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 object Common {
-    private val languageMap = mapOf(
+    val languageMap = mapOf(
         "xx" to "N/A",
         "aa" to "Afar",
         "af" to "Afrikaans",
@@ -17,6 +20,7 @@ object Common {
         "bi" to "Bislama",
         "bo" to "Tibetan",
         "br" to "Breton",
+        "bn" to "Bengali",
         "ca" to "Catalan",
         "cs" to "Czech",
         "ce" to "Chechen",
@@ -113,6 +117,7 @@ object Common {
         "or" to "Oriya",
         "om" to "Oromo",
         "os" to "Ossetian; Ossetic",
+        "pa" to "Punjabi",
         "pi" to "Pali",
         "pl" to "Polish",
         "pt" to "Portuguese",
@@ -185,6 +190,21 @@ object Common {
         "ka" to "Georgian"
     )
 
+    val indianLanguages = listOf(
+        "hi" to "Hindi",
+        "en" to "English",
+        "as" to "Assamese",
+        "bn" to "Bengali",
+        "gu" to "Gujarati",
+        "kn" to "Kannada",
+        "ml" to "Malayalam",
+        "mr" to "Marathi",
+        "or" to "Oriya",
+        "pa" to "Punjabi",
+        "ta" to "Tamil",
+        "te" to "Telugu",
+    )
+
     fun getLanguageName(code: String) = languageMap[code] ?: "N/A"
 
     private val genres = mapOf(
@@ -210,5 +230,12 @@ object Common {
     )
 
     fun getGenres(id: Int) = genres[id] ?: "N/A"
+
+    fun tomorrowDate(): String {
+        val tomorrow = LocalDate.now().plusDays(1)
+        val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+        val formattedDate = tomorrow.format(formatter)
+        return formattedDate
+    }
 
 }

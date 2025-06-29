@@ -2,11 +2,15 @@ package com.kivous.phasemovie.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kivous.phasemovie.domain.model.Movie
 import com.kivous.phasemovie.domain.repository.MovieRepository
+import com.kivous.phasemovie.presentation.state.LoadState
 import com.kivous.phasemovie.presentation.state.MovieState
+import com.kivous.phasemovie.presentation.state.MoviesWrapper
 import com.kivous.phasemovie.util.Category
 import com.kivous.phasemovie.util.Response
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -19,240 +23,131 @@ class MovieViewModel @Inject constructor(
     private val movieRepository: MovieRepository
 ) : ViewModel() {
     private var _movieState = MutableStateFlow(MovieState())
-    val movieListState = _movieState.asStateFlow()
+    val movieState = _movieState.asStateFlow()
 
-    fun paginate(category: Category) {
+    fun paginate(category: Category, id: String = "") {
+        val wrapper = movieState.value.moviesState[category] ?: return
+        if (wrapper.loadState == LoadState.Loading) return
         when (category) {
-            Category.NOW_PLAYING -> {
-                getNowPlayingMovieList()
-            }
+            Category.LATEST_RELEASES_IN_INDIA,
+            Category.NOW_PLAYING,
+            Category.POPULAR,
+            Category.TOP_RATED -> getMovies(category)
 
-            Category.POPULAR -> {
-                getPopularMovieList()
-            }
-
-            Category.TOP_RATED -> {
-                getTopRatedMovieList()
-            }
-
-            Category.UPCOMING -> {
-                getUpcomingMovieList()
-            }
-
-            else -> {}
+            Category.TRENDING_MOVIES -> getTrendingMovies()
+            Category.SIMILAR -> getSimilarMovies(id)
+            else -> getDiscoverMedia(category)
         }
     }
 
-    fun getNowPlayingMovieList() = viewModelScope.launch {
-        movieRepository.getMovieList(
-            Category.NOW_PLAYING.category,
-            movieListState.value.nowPlayingMovieListPage
-        ).collectLatest { result ->
-            when (result) {
-                is Response.Loading -> {
-                    _movieState.update {
-                        it.copy(isLoadingNowPlaying = true)
-                    }
+    fun fetchMovies(
+        category: Category,
+        usePage: Boolean = true,
+        append: Boolean = true,
+        fetch: suspend (page: Int) -> Flow<Response<List<Movie>>>
+    ) = viewModelScope.launch {
+        val current = movieState.value.moviesState[category] ?: MoviesWrapper()
+        val page = if (usePage) current.page else 1
+
+        fetch(page).collectLatest { result ->
+            _movieState.update { state ->
+                val movies =
+                    result.data.orEmpty().let { if (category.shuffle) it.shuffled() else it }
+
+                val updatedWrapper = when (result) {
+                    is Response.Loading -> current.copy(loadState = LoadState.Loading)
+
+                    is Response.Success -> current.copy(
+                        loadState = LoadState.Success,
+                        movies = if (append) current.movies + movies else movies,
+                        page = if (usePage) current.page + 1 else current.page
+                    )
+
+                    is Response.Error -> current.copy(
+                        loadState = LoadState.Failure,
+                        error = result.message.orEmpty()
+                    )
                 }
 
-                is Response.Success -> {
-                    result.data?.let { nowPlayingMovieList ->
-                        _movieState.update {
-                            it.copy(
-                                isLoadingNowPlaying = false,
-                                nowPlayingMovieList =
-                                    movieListState.value.nowPlayingMovieList
-                                            + nowPlayingMovieList.shuffled(),
-                                nowPlayingMovieListPage = movieListState.value.nowPlayingMovieListPage + 1
-                            )
-                        }
+                state.copy(
+                    moviesState = state.moviesState.toMutableMap().apply {
+                        put(category, updatedWrapper)
                     }
-                }
-
-                is Response.Error -> {
-                    _movieState.update {
-                        it.copy(isLoadingNowPlaying = false)
-                    }
-                }
+                )
             }
         }
     }
 
-    fun getPopularMovieList() = viewModelScope.launch {
-        movieRepository.getMovieList(
-            Category.POPULAR.category,
-            movieListState.value.popularMovieListPage
-        ).collectLatest { result ->
-            when (result) {
-                is Response.Loading -> {
-                    _movieState.update {
-                        it.copy(isLoadingPopular = true)
-                    }
-                }
-
-                is Response.Success -> {
-                    result.data?.let { popularMovieList ->
-                        _movieState.update {
-                            it.copy(
-                                isLoadingPopular = false,
-                                popularMovieList =
-                                    movieListState.value.popularMovieList
-                                            +
-                                            popularMovieList
-                                                .shuffled(),
-                                popularMovieListPage = movieListState.value.popularMovieListPage + 1
-                            )
-                        }
-                    }
-                }
-
-                is Response.Error -> {
-                    _movieState.update {
-                        it.copy(isLoadingPopular = false)
-                    }
-                }
-            }
+    fun getMovies(category: Category) {
+        fetchMovies(
+            category = category,
+            usePage = true,
+            append = true,
+        ) { page ->
+            movieRepository.getMovies(category, page)
         }
     }
 
-    fun getTopRatedMovieList() = viewModelScope.launch {
-        movieRepository.getMovieList(
-            Category.TOP_RATED.category,
-            movieListState.value.topRatedMovieListPage
-        ).collectLatest { result ->
-            when (result) {
-                is Response.Loading -> {
-                    _movieState.update {
-                        it.copy(isLoadingTopRated = true)
-                    }
-                }
-
-                is Response.Success -> {
-                    result.data?.let { topRatedMovieList ->
-                        _movieState.update {
-                            it.copy(
-                                isLoadingTopRated = false,
-                                topRatedMovieList =
-                                    movieListState.value.topRatedMovieList
-                                            + topRatedMovieList.shuffled(),
-                                topRatedMovieListPage = movieListState.value.topRatedMovieListPage + 1
-                            )
-                        }
-                    }
-                }
-
-                is Response.Error -> {
-                    _movieState.update {
-                        it.copy(isLoadingTopRated = false)
-                    }
-                }
-            }
+    fun getSimilarMovies(id: String, category: Category = Category.SIMILAR) {
+        fetchMovies(
+            category = category,
+            usePage = true,
+            append = true,
+        ) { page ->
+            movieRepository.getSimilarMovies(id, page)
         }
     }
 
-    fun getUpcomingMovieList() = viewModelScope.launch {
-        movieRepository.getMovieList(
-            Category.UPCOMING.category,
-            movieListState.value.upcomingMovieListPage
-        ).collectLatest { result ->
-            when (result) {
-                is Response.Loading -> {
-                    _movieState.update {
-                        it.copy(isLoadingUpcoming = true)
-                    }
-                }
-
-                is Response.Success -> {
-                    result.data?.let { upcomingMovieList ->
-                        _movieState.update {
-                            it.copy(
-                                isLoadingUpcoming = false,
-                                upcomingMovieList =
-                                    movieListState.value.upcomingMovieList
-                                            + upcomingMovieList.shuffled(),
-                                upcomingMovieListPage = movieListState.value.upcomingMovieListPage + 1
-                            )
-                        }
-                    }
-                }
-
-                is Response.Error -> {
-                    _movieState.update {
-                        it.copy(isLoadingUpcoming = false)
-                    }
-                }
-            }
+    fun getTrendingMovies(category: Category = Category.TRENDING_MOVIES) = viewModelScope.launch {
+        fetchMovies(
+            category = category,
+            usePage = true,
+            append = true,
+        ) { page ->
+            movieRepository.getTrendingMovies(page = page)
         }
     }
 
-    fun getSimilarMovieList(id: String) = viewModelScope.launch {
-        movieRepository.getSimilarMovies(id).collectLatest { result ->
-            when (result) {
-                is Response.Loading -> {
-                    _movieState.update {
-                        it.copy(isLoadingSimilar = true)
-                    }
-                }
-
-                is Response.Success -> {
-                    result.data?.let { list ->
-                        _movieState.update {
-                            it.copy(
-                                isLoadingSimilar = false,
-                                similarMovieList = list
-                            )
-                        }
-                    }
-                }
-
-                is Response.Error -> {
-                    _movieState.update {
-                        it.copy(isLoadingSimilar = false)
-                    }
-                }
-            }
+    fun getDiscoverMedia(
+        category: Category,
+        language: String = category.language,
+        usePage: Boolean = true,
+        append: Boolean = true,
+    ) = viewModelScope.launch {
+        fetchMovies(
+            category = category,
+            usePage = usePage,
+            append = append,
+        ) { page ->
+            movieRepository.discoverMedia(
+                mediaType = category.mediaType,
+                page = page,
+                sortBy = category.sortBy,
+                withOriginCountry = category.originCountry,
+                withOriginalLanguage = language,
+                withGenres = category.genres,
+                withKeywords = category.keywords,
+                primaryReleaseDateGte = category.primaryReleaseDateGte
+            )
         }
     }
 
-    fun getSliderMovieList() = viewModelScope.launch {
-        movieRepository.getSliderMovieList().collectLatest { result ->
-            when (result) {
-                is Response.Loading -> {
-                    _movieState.update {
-                        it.copy(isLoadingSliderMovie = true)
-                    }
-                }
-
-                is Response.Success -> {
-                    result.data?.let { data ->
-                        _movieState.update {
-                            it.copy(
-                                isLoadingSliderMovie = false,
-                                sliderMovieList = data
-                            )
-                        }
-                    }
-                }
-
-                is Response.Error -> {
-                    _movieState.update {
-                        it.copy(
-                            isLoadingSliderMovie = false,
-                            sliderMovieError = result.message ?: ""
-                        )
-                    }
-                }
-
-            }
+    fun getSliderMovies(category: Category = Category.SLIDER) {
+        fetchMovies(
+            category = category,
+            usePage = false,
+            append = false,
+        ) {
+            movieRepository.getSliderMovies()
         }
     }
 
-    fun getMovieDetails(id: String) = viewModelScope.launch {
-        movieRepository.getMovieDetails(id).collectLatest { result ->
+    fun getMovie(id: String) = viewModelScope.launch {
+        movieRepository.getMovie(id).collectLatest { result ->
             when (result) {
                 is Response.Loading -> {
                     _movieState.update {
-                        it.copy(isLoadingMovieDetails = true)
+                        it.copy(movieLoadState = LoadState.Loading)
                     }
 
                 }
@@ -260,8 +155,7 @@ class MovieViewModel @Inject constructor(
                 is Response.Success -> {
                     _movieState.update {
                         it.copy(
-                            isLoadingMovieDetails = false,
-                            movieDetails = result.data
+                            movieLoadState = LoadState.Success, movie = result.data
                         )
                     }
                 }
@@ -269,8 +163,7 @@ class MovieViewModel @Inject constructor(
                 is Response.Error -> {
                     _movieState.update {
                         it.copy(
-                            isLoadingMovieDetails = false,
-                            movieDetailsError = result.message ?: ""
+                            movieLoadState = LoadState.Failure, movieError = result.message ?: ""
                         )
                     }
                 }
@@ -291,8 +184,7 @@ class MovieViewModel @Inject constructor(
                 is Response.Success -> {
                     _movieState.update {
                         it.copy(
-                            isLoadingMovieCredits = false,
-                            movieCredits = result.data
+                            isLoadingMovieCredits = false, movieCredits = result.data
                         )
                     }
                 }
@@ -300,8 +192,7 @@ class MovieViewModel @Inject constructor(
                 is Response.Error -> {
                     _movieState.update {
                         it.copy(
-                            isLoadingMovieCredits = false,
-                            movieCreditsError = result.message ?: ""
+                            isLoadingMovieCredits = false, movieCreditsError = result.message ?: ""
                         )
                     }
                 }
@@ -311,5 +202,32 @@ class MovieViewModel @Inject constructor(
         }
     }
 
+    fun getSocial(id: String) = viewModelScope.launch {
+        movieRepository.getSocial(id).collectLatest { result ->
+            when (result) {
+                is Response.Loading -> {
+                    _movieState.update {
+                        it.copy(isLoadingSocial = true)
+                    }
+                }
+
+                is Response.Success -> {
+                    _movieState.update {
+                        it.copy(
+                            isLoadingSocial = false, social = result.data
+                        )
+                    }
+                }
+
+                is Response.Error -> {
+                    _movieState.update {
+                        it.copy(
+                            isLoadingSocial = false, socialError = result.message ?: ""
+                        )
+                    }
+                }
+            }
+        }
+    }
 
 }

@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,7 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,32 +52,34 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
-import com.kivous.phasemovie.presentation.compoment.ChangeStatusBarColor
-import com.kivous.phasemovie.presentation.compoment.MovieRow
+import com.kivous.phasemovie.presentation.compoment.MovieCategoryRow
+import com.kivous.phasemovie.presentation.compoment.StatusBarColor
+import com.kivous.phasemovie.presentation.compoment.getAverageColor
 import com.kivous.phasemovie.presentation.viewmodel.MovieViewModel
 import com.kivous.phasemovie.ui.theme.NunitoBold
 import com.kivous.phasemovie.ui.theme.PoppinsBold
 import com.kivous.phasemovie.ui.theme.Red
 import com.kivous.phasemovie.util.Category
 import com.kivous.phasemovie.util.Common.getLanguageName
-import com.kivous.phasemovie.util.Extension.logD
-import com.kivous.phasemovie.util.getAverageColor
 
 @Composable
-fun MovieDetailsScreen(
+fun MovieScreen(
     movieId: Int = 0,
     onBackClick: () -> Unit = {},
     onSimilarMovieClick: (Int) -> Unit = {},
     movieViewModel: MovieViewModel = hiltViewModel()
 ) {
+
     LaunchedEffect(Unit) {
-        movieViewModel.getMovieDetails(id = movieId.toString())
+        movieViewModel.getMovie(id = movieId.toString())
         movieViewModel.getMovieCredits(id = movieId.toString())
+        movieViewModel.getSocial(id = movieId.toString())
     }
 
-    val movieState by movieViewModel.movieListState.collectAsStateWithLifecycle()
-    val movie = movieState.movieDetails
+    val movieState by movieViewModel.movieState.collectAsStateWithLifecycle()
+    val movie = movieState.movie
     val cast = movieState.movieCredits?.cast
+    val social = movieState.social
 
     var avgColor by remember {
         mutableStateOf(Color.Black)
@@ -87,7 +87,7 @@ fun MovieDetailsScreen(
 
     val scrollState = rememberScrollState()
 
-    ChangeStatusBarColor(scrollState = scrollState.value, color = avgColor)
+    StatusBarColor(scrollState = scrollState.value, color = avgColor)
 
     val imageStateBackDrop = rememberAsyncImagePainter(
         model = ImageRequest.Builder(LocalContext.current).data(movie?.backdropPath)
@@ -246,7 +246,7 @@ fun MovieDetailsScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(text = movie?.genres?.joinToString(separator = "  |  ") {
-            it.name
+            it
         } ?: "",
             modifier = Modifier
                 .padding(horizontal = 8.dp)
@@ -282,17 +282,13 @@ fun MovieDetailsScreen(
                     Column(
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable{
-                            logD(it.order)
-                        }
-                    ) {
+                        modifier = Modifier.clickable {
+                        }) {
                         AsyncImage(
                             model = it.profilePath,
                             contentDescription = "",
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(72.dp)
-                                .clip(CircleShape)
+                            modifier = Modifier.size(72.dp)
                         )
                         Text(text = it.name)
                         Text(text = it.character)
@@ -302,28 +298,37 @@ fun MovieDetailsScreen(
 
         }
 
-        val movieViewModel: MovieViewModel = hiltViewModel()
-        val movieListState = movieViewModel.movieListState.collectAsState().value
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            social?.let {
+                Text(it.imdbId)
+                Text(it.wikidataId)
+                Text(it.facebookId)
+                Text(it.instagramId)
+                Text(it.twitterId)
+            }
 
-        LaunchedEffect(key1 = movieId) {
-            movieViewModel.getSimilarMovieList(movieId.toString())
         }
+        Text(movie?.releaseDate.orEmpty())
 
         Spacer(modifier = Modifier.height(64.dp))
 
-        if (movieListState.similarMovieList.isNotEmpty()) {
-            MovieRow(
-                category = Category.SIMILAR,
-                movieList = movieListState.similarMovieList,
-                onMoreClick = {
 
-                },
-                onMovieClick = {
-                    onSimilarMovieClick(it.id)
-                },
-                more = false
-            )
-        }
+        MovieCategoryRow(
+            category = Category.SIMILAR,
+            viewModel = movieViewModel,
+            state = movieState,
+            onMovieClick = {
+                onSimilarMovieClick(it)
+            },
+            showMore = false,
+            movieId = movieId
+        )
 
         Box(modifier = Modifier.height(124.dp))
 

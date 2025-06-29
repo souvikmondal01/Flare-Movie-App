@@ -1,6 +1,6 @@
 package com.kivous.phasemovie.data.remote.model
 
-data class MovieListDto(
+data class MoviesDto(
     val page: Int?,
     val results: List<MovieDto>,
     val total_pages: Int?,

@@ -2,91 +2,129 @@ package com.kivous.phasemovie.data.mapper
 
 import com.kivous.phasemovie.data.remote.MovieApi.Companion.IMAGE_BASE_URL
 import com.kivous.phasemovie.data.remote.model.MovieDto
+import com.kivous.phasemovie.data.remote.model.SliderMovie
+import com.kivous.phasemovie.data.remote.model.SocialDto
 import com.kivous.phasemovie.data.remote.model.movie_credits.CastDto
 import com.kivous.phasemovie.data.remote.model.movie_credits.CrewDto
 import com.kivous.phasemovie.data.remote.model.movie_credits.MovieCreditsDto
-import com.kivous.phasemovie.data.remote.model.movie_details.GenreDto
 import com.kivous.phasemovie.data.remote.model.movie_details.MovieDetailsDto
-import com.kivous.phasemovie.domain.model.Genre
 import com.kivous.phasemovie.domain.model.Movie
-import com.kivous.phasemovie.domain.model.MovieDetails
+import com.kivous.phasemovie.domain.model.Social
 import com.kivous.phasemovie.domain.model.movie_credits.Cast
 import com.kivous.phasemovie.domain.model.movie_credits.Crew
 import com.kivous.phasemovie.domain.model.movie_credits.MovieCredits
 
-fun MovieDto.toMovie(
-    category: String
-): Movie = Movie(
+fun MovieDto.toMovie() = Movie(
     adult = adult == true,
-    backdrop_path = IMAGE_BASE_URL + backdrop_path,
-    original_language = original_language ?: "",
-    overview = overview ?: "",
-    poster_path = IMAGE_BASE_URL + poster_path,
-    release_date = release_date ?: "0000-00-00",
-    title = title ?: "",
-    vote_average = vote_average ?: 0.0,
-    popularity = popularity ?: 0.0,
-    vote_count = vote_count ?: 0,
+    backdropPath = backdrop_path?.let { IMAGE_BASE_URL + it } ?: "",
+    budget = 0,
+    genres = genre_ids?.map { it.toString() } ?: emptyList(),
+    homepage = "",
     id = id ?: -1,
-    original_title = original_title ?: "",
-    video = video == true,
-    category = category,
-    genre_ids = genre_ids ?: listOf(-1, -2)
-)
-
-fun MovieDetailsDto.toMovieDetails(
-): MovieDetails = MovieDetails(
-    adult = adult == true,
-    backdropPath = IMAGE_BASE_URL + backdrop_path,
-    budget = budget ?: 0,
-    genres = genres?.map { it.toGenre() } ?: listOf(),
-    homepage = homepage ?: "",
-    id = id ?: -1,
-    imdbId = imdb_id ?: "",
-    originalLanguage = original_language ?: "",
-    originalTitle = original_title ?: "",
-    overview = overview ?: "",
-    posterPath = IMAGE_BASE_URL + poster_path,
-    releaseDate = release_date ?: "",
-    revenue = revenue ?: 0,
-    runtime = runtime ?: 0,
-    status = status ?: "",
-    tagline = tagline ?: "",
-    title = title ?: "",
+    imdbId = "",
+    originalLanguage = original_language ?: "xx",
+    originalTitle = original_title.orEmpty(),
+    overview = overview.orEmpty(),
+    posterPath = poster_path?.let { IMAGE_BASE_URL + it } ?: "",
+    releaseDate = release_date.orEmpty(),
+    revenue = 0,
+    runtime = 0,
+    status = "",
+    tagline = "",
+    title = title.orEmpty(),
     video = video == true,
     voteAverage = vote_average ?: 0.0,
     voteCount = vote_count ?: 0,
+    firstAirDate = first_air_date.orEmpty(),
+    name = name.orEmpty(),
 )
 
-fun GenreDto.toGenre(): Genre = Genre(
-    id = id ?: -1, name = name ?: ""
+fun SliderMovie.toMovie() = Movie(
+    adult = false,
+    backdropPath = bgUrl.orEmpty(),
+    budget = 0,
+    genres = genres.orEmpty(),
+    homepage = "",
+    id = id?.toInt() ?: 0,
+    imdbId = "",
+    originalLanguage = "",
+    originalTitle = name.orEmpty(),
+    overview = "",
+    posterPath = fgUrl.orEmpty(),
+    releaseDate = "",
+    revenue = 0,
+    runtime = 0,
+    status = "",
+    tagline = "",
+    title = name.orEmpty(),
+    video = false,
+    voteAverage = 0.0,
+    voteCount = 0,
+    firstAirDate = "",
+    name = name.orEmpty(),
 )
 
-fun MovieCreditsDto.toMovieCredits(): MovieCredits = MovieCredits(
-    cast = cast?.map { it.toCast() } ?: emptyList(),
-    crew = crew?.map { it.toCrew() } ?: emptyList(),
-    id = id ?: -1
+fun MovieDetailsDto.toMovie(
+): Movie = Movie(
+    adult = adult == true,
+    backdropPath = backdrop_path?.let { IMAGE_BASE_URL + it } ?: "",
+    budget = budget ?: 0,
+    genres = genres?.map { it.name.orEmpty() }.orEmpty(),
+    homepage = homepage.orEmpty(),
+    id = id ?: -1,
+    imdbId = imdb_id.orEmpty(),
+    originalLanguage = original_language.orEmpty(),
+    originalTitle = original_title.orEmpty(),
+    overview = overview.orEmpty(),
+    posterPath = poster_path?.let { IMAGE_BASE_URL + it } ?: "",
+    releaseDate = release_date.orEmpty(),
+    revenue = revenue ?: 0,
+    runtime = runtime ?: 0,
+    status = status.orEmpty(),
+    tagline = tagline.orEmpty(),
+    title = title.orEmpty(),
+    video = video == true,
+    voteAverage = vote_average ?: 0.0,
+    voteCount = vote_count ?: 0,
+    firstAirDate = "",
+    name = "",
 )
+
+fun MovieCreditsDto.toMovieCredits(): MovieCredits =
+    MovieCredits(
+        cast = cast?.map { it.toCast() }.orEmpty(),
+        crew = crew?.map { it.toCrew() }.orEmpty(),
+        id = id ?: -1
+    )
 
 fun CastDto.toCast(): Cast = Cast(
     castId = cast_id ?: -1,
-    character = character ?: "",
-    creditId = credit_id ?: "",
+    character = character.orEmpty(),
+    creditId = credit_id.orEmpty(),
     gender = gender ?: -1,
     id = id ?: -1,
-    knownForDepartment = known_for_department ?: "",
-    name = name ?: "",
+    knownForDepartment = known_for_department.orEmpty(),
+    name = name.orEmpty(),
     order = order ?: 9999,
     profilePath = IMAGE_BASE_URL + profile_path
 )
 
 fun CrewDto.toCrew(): Crew = Crew(
-    creditId = credit_id ?: "",
-    department = department ?: "",
+    creditId = credit_id.orEmpty(),
+    department = department.orEmpty(),
     gender = gender ?: -1,
     id = id ?: -1,
-    job = job ?: "",
-    knownForDepartment = known_for_department ?: "",
-    name = name ?: "",
-    profilePath = IMAGE_BASE_URL + profile_path
+    job = job.orEmpty(),
+    knownForDepartment = known_for_department.orEmpty(),
+    name = name.orEmpty(),
+    profilePath = profile_path?.let { IMAGE_BASE_URL + it } ?: ""
+)
+
+fun SocialDto.toSocial(): Social = Social(
+    facebookId = facebook_id.orEmpty(),
+    id = id ?: -1,
+    imdbId = imdb_id.orEmpty(),
+    instagramId = instagram_id.orEmpty(),
+    twitterId = twitter_id.orEmpty(),
+    wikidataId = wikidata_id.orEmpty()
 )

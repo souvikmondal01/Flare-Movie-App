@@ -30,6 +30,12 @@ fun poppins(weight: FontWeight): FontFamily = FontFamily(
 )
 
 val Typography = Typography(
+    displayLarge = TextStyle(
+        fontFamily = poppins(FontWeight.Bold),
+        fontSize = 52.sp,
+        lineHeight = 60.sp,
+        letterSpacing = (-0.25).sp
+    ),
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
@@ -37,11 +43,17 @@ val Typography = Typography(
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
+    bodySmall = TextStyle(
+        fontFamily = poppins(FontWeight.Light),
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.4.sp
+    ),
     titleMedium = TextStyle(
-        fontFamily = poppins(FontWeight.SemiBold),
+        fontFamily = poppins(FontWeight.W600),
         fontSize = 17.sp,
         lineHeight = 24.sp,
-        letterSpacing = 0.sp
+        letterSpacing = 0.sp,
     ),
     titleSmall = TextStyle(
         fontFamily = nunito(FontWeight.SemiBold),
@@ -54,8 +66,15 @@ val Typography = Typography(
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp
+    ),
+    labelMedium = TextStyle(
+        fontFamily = poppins(FontWeight.Medium),
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
+    ),
+
     )
-)
 
 val NunitoBold = FontFamily(Font(R.font.nunito_bold))
 val NunitoSemiBold = FontFamily(Font(R.font.nunito_semi_bold))

@@ -1,4 +1,4 @@
-package com.kivous.phasemovie.util
+package com.kivous.phasemovie.presentation.compoment
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable

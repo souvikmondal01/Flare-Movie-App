@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,22 +25,34 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kivous.phasemovie.domain.model.Movie
-import com.kivous.phasemovie.presentation.compoment.ChangeStatusBarColor
 import com.kivous.phasemovie.presentation.compoment.MovieGrid
+import com.kivous.phasemovie.presentation.compoment.StatusBarColor
 import com.kivous.phasemovie.presentation.viewmodel.MovieViewModel
 import com.kivous.phasemovie.util.Category
 
 @Composable
-fun MovieListScreen(
+fun MovieGridScreen(
     category: Category,
     onBackClick: () -> Unit = {},
     onMovieClick: (Int) -> Unit = {},
     movieViewModel: MovieViewModel = hiltViewModel()
 ) {
-    ChangeStatusBarColor()
+    StatusBarColor()
 
-    val movieListState by movieViewModel.movieListState.collectAsStateWithLifecycle()
+    LaunchedEffect(category) {
+        when (category) {
+            Category.LATEST_RELEASES_IN_INDIA,
+            Category.NOW_PLAYING,
+            Category.POPULAR,
+            Category.TOP_RATED -> movieViewModel.getMovies(category)
+
+            Category.TRENDING_MOVIES -> movieViewModel.getTrendingMovies()
+            else -> movieViewModel.getDiscoverMedia(category)
+        }
+    }
+
+    val movieState by movieViewModel.movieState.collectAsStateWithLifecycle()
+    val movies = movieState.moviesState[category]?.movies.orEmpty()
 
     Column(
         modifier = Modifier
@@ -74,18 +87,9 @@ fun MovieListScreen(
         }
         // Top app-bar end
 
-        val (movieList, isLoading) = when (category) {
-            Category.NOW_PLAYING -> movieListState.nowPlayingMovieList to movieListState.isLoadingNowPlaying
-            Category.POPULAR -> movieListState.popularMovieList to movieListState.isLoadingPopular
-            Category.TOP_RATED -> movieListState.topRatedMovieList to movieListState.isLoadingTopRated
-            Category.UPCOMING -> movieListState.upcomingMovieList to movieListState.isLoadingUpcoming
-            else -> emptyList<Movie>() to false
-        }
-
         MovieGrid(
-            movies = movieList,
-            isLoading = isLoading,
-            onMovieClick = { onMovieClick(it.id) },
+            movies = movies,
+            onMovieClick = { onMovieClick(it) },
             paginate = { movieViewModel.paginate(category) }
         )
 

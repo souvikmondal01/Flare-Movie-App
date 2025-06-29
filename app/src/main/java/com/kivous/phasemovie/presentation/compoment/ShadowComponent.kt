@@ -1,5 +1,6 @@
 package com.kivous.phasemovie.presentation.compoment
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -8,6 +9,7 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
+@SuppressLint("UnnecessaryComposedModifier")
 @Composable
 fun Modifier.shadowEffect(
     color: Color = MaterialTheme.colorScheme.background

@@ -8,13 +8,13 @@ import androidx.compose.ui.graphics.Color
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
-fun ChangeStatusBarColor(color: Color = MaterialTheme.colorScheme.background) {
+fun StatusBarColor(color: Color = MaterialTheme.colorScheme.background) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(color)
 }
 
 @Composable
-fun ChangeStatusBarColor(
+fun StatusBarColor(
     scrollState: Int = 0,
     threshold: Int = 200,
     color: Color = MaterialTheme.colorScheme.background,
