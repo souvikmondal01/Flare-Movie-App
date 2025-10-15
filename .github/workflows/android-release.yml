@@ -1,0 +1,113 @@
+name: Build Signed Release APK
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  discussions: write
+
+env:
+  APP_NAME: flare      # ✅ Define your app name once here
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧭 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: 🔐 Decode Keystore
+        run: |
+          mkdir -p app
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/release-key.jks
+
+      - name: Decode google-services.json
+        run: |
+          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+
+      - name: 📝 Get versionName from build.gradle.kts
+        id: version
+        run: |
+          VERSION_NAME=$(grep -oP 'versionName\s*=\s*"\K[0-9A-Za-z._-]+' app/build.gradle.kts || true)
+
+          if [ -z "$VERSION_NAME" ]; then
+            echo "❌ versionName not found!"
+            exit 1
+          fi
+            echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+            echo "📌 Extracted VERSION_NAME: $VERSION_NAME"
+
+      - name: ⚙️ Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: 🏗️ Build Signed Release APK
+        run: ./gradlew clean assembleRelease
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: ✍️ Rename APK with app name & version
+        run: |
+          mv app/build/outputs/apk/release/app-release.apk \
+             app/build/outputs/apk/release/${{ env.APP_NAME }}-v${{ env.VERSION_NAME }}.apk
+
+      - name: 🗑️ Delete existing release and tag if exists
+        run: |
+          set -e
+          # Get the first matching release only
+          RELEASE_ID=$(gh release list --limit 100 | grep "v${{ env.VERSION_NAME }}" | awk '{print $1}' | head -n1 || true)
+          if [ -n "$RELEASE_ID" ]; then
+            echo "Deleting old release: $RELEASE_ID"
+            gh release delete "$RELEASE_ID" --yes
+            git push origin --delete "v${{ env.VERSION_NAME }}" || true
+          else
+          echo "No existing release found for v${{ env.VERSION_NAME }}"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 Upload Signed APK (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-v${{ env.VERSION_NAME }}
+          path: app/build/outputs/apk/release/${{ env.APP_NAME }}-v${{ env.VERSION_NAME }}.apk
+          if-no-files-found: error
+
+      - name: 🚀 Create GitHub Release & Upload APK
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/release/${{ env.APP_NAME }}-v${{ env.VERSION_NAME }}.apk
+          name: v${{ env.VERSION_NAME }}
+          body: |
+            📢 New release for **${{ env.APP_NAME }}**!
+            See the attached asset for more details.
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          tag_name: v${{ env.VERSION_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🌐 Update GitHub Repo Website URL
+        run: |
+          curl -X PATCH \
+          -H "Authorization: token ${{ secrets.GH_PAT }}" \
+          -H "Accept: application/vnd.github+json" \
+          https://api.github.com/repos/${{ github.repository }} \
+          -d "{\"homepage\":\"https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION_NAME }}/${{ env.APP_NAME }}-v${{ env.VERSION_NAME }}.apk\"}"
