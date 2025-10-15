@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="AppInsightsSettings">
+    <option name="selectedTabId" value="Android Vitals" />
     <option name="tabSettings">
       <map>
         <entry key="Firebase Crashlytics">
@@ -8,8 +9,8 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.kivous.phasemovie" />
-                  <option name="mobileSdkAppId" value="1:542888243025:android:00719983be45e977f52d70" />
+                  <option name="appId" value="com.souvikmondal01.flare" />
+                  <option name="mobileSdkAppId" value="1:542888243025:android:9bd67f11a58c0a40f52d70" />
                   <option name="projectId" value="oneproject-op" />
                   <option name="projectNumber" value="542888243025" />
                 </ConnectionSetting>

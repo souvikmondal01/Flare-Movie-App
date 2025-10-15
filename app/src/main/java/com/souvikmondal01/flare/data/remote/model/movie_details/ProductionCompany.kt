@@ -1,0 +1,8 @@
+package com.souvikmondal01.flare.data.remote.model.movie_details
+
+data class ProductionCompany(
+    val id: Int?,
+    val logo_path: String?,
+    val name: String?,
+    val origin_country: String?
+)
